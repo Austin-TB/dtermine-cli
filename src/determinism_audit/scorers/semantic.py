@@ -21,7 +21,7 @@ DEFAULT_THRESHOLD = 0.97
 
 
 @lru_cache(maxsize=1)
-def _load_model() -> "SentenceTransformer":
+def _load_model() -> SentenceTransformer:
     """Load the embedding model, preferring the baked-in Docker path."""
     from sentence_transformers import SentenceTransformer
 
