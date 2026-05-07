@@ -26,7 +26,7 @@ def _load_model() -> SentenceTransformer:
     from sentence_transformers import SentenceTransformer
 
     model_path = str(_BAKED_MODEL_PATH) if _BAKED_MODEL_PATH.exists() else _MODEL_NAME
-    return SentenceTransformer(model_path)
+    return SentenceTransformer(model_path)  # type: ignore[no-any-return]
 
 
 def _cosine(a: list[float], b: list[float]) -> float:

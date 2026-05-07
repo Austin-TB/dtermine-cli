@@ -67,7 +67,7 @@ def _build_error_payload(exc: BaseException) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-@retry(  # type: ignore[misc]
+@retry(
     retry=retry_if_exception(_should_retry),
     stop=stop_after_attempt(_RETRY_ATTEMPTS),
     wait=wait_exponential(multiplier=1, min=_RETRY_WAIT_MIN, max=_RETRY_WAIT_MAX),
