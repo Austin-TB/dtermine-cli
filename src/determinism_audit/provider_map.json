@@ -1,0 +1,8 @@
+{
+  "OPENAI_API_KEY": "openai/gpt-4o-mini",
+  "ANTHROPIC_API_KEY": "anthropic/claude-haiku-4-5",
+  "MISTRAL_API_KEY": "mistral/mistral-small-latest",
+  "TOGETHER_API_KEY": "together_ai/meta-llama/Llama-3.1-8B-Instruct",
+  "FIREWORKS_API_KEY": "fireworks_ai/accounts/fireworks/models/llama-v3p1-8b-instruct",
+  "GROQ_API_KEY": "groq/llama-3.1-8b-instant"
+}
