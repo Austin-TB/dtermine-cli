@@ -10,6 +10,7 @@ import re
 # JSON structural scoring
 # ---------------------------------------------------------------------------
 
+
 def _extract_json(text: str) -> str:
     """Strip markdown code fences if present, otherwise return text as-is."""
     # Strip ```json ... ``` or ``` ... ``` fences
@@ -75,6 +76,7 @@ def score_python_ast(text: str) -> bool:
 # ---------------------------------------------------------------------------
 # Unified structural scorer
 # ---------------------------------------------------------------------------
+
 
 def score_structural(a: str, b: str) -> bool:
     """

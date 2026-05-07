@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import math
 from unittest.mock import patch
 
 import pytest
@@ -21,10 +20,10 @@ from determinism_audit.metrics import (
 )
 from determinism_audit.result import RunResult
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _run(response: str | None = "Au", run_index: int = 0) -> RunResult:
     return RunResult(
@@ -52,6 +51,7 @@ def _error_run(run_index: int = 0) -> RunResult:
 # ---------------------------------------------------------------------------
 # Test _wilson_ci
 # ---------------------------------------------------------------------------
+
 
 class TestWilsonCI:
     def test_all_successes(self) -> None:
@@ -87,6 +87,7 @@ class TestWilsonCI:
 # ---------------------------------------------------------------------------
 # Test Levenshtein
 # ---------------------------------------------------------------------------
+
 
 class TestLevenshtein:
     def test_identical_strings(self) -> None:
@@ -137,6 +138,7 @@ class TestNormalisedLevenshtein:
 # Test byte_exact_rate
 # ---------------------------------------------------------------------------
 
+
 class TestByteExactRate:
     def test_all_identical(self) -> None:
         runs = [_run("Au", i) for i in range(5)]
@@ -145,8 +147,11 @@ class TestByteExactRate:
 
     def test_all_different(self) -> None:
         runs = [
-            _run("Au", 0), _run("Ag", 1), _run("Cu", 2),
-            _run("Fe", 3), _run("Au", 4),
+            _run("Au", 0),
+            _run("Ag", 1),
+            _run("Cu", 2),
+            _run("Fe", 3),
+            _run("Au", 4),
         ]
         rate, lo, hi = byte_exact_rate(runs)
         # Only 2 of 5 match the pivot ("Au")
@@ -175,6 +180,7 @@ class TestByteExactRate:
 # ---------------------------------------------------------------------------
 # Test semantic_stability_rate
 # ---------------------------------------------------------------------------
+
 
 class TestSemanticStabilityRate:
     def test_fewer_than_two_responses(self) -> None:
@@ -205,6 +211,7 @@ class TestSemanticStabilityRate:
 # Test structural_validity_rate
 # ---------------------------------------------------------------------------
 
+
 class TestStructuralValidityRate:
     def test_all_valid_json(self) -> None:
         runs = [_run('{"a": 1}', i) for i in range(3)]
@@ -230,6 +237,7 @@ class TestStructuralValidityRate:
 # ---------------------------------------------------------------------------
 # Test divergence_index
 # ---------------------------------------------------------------------------
+
 
 class TestDivergenceIndex:
     def test_identical_responses_zero(self) -> None:
@@ -260,6 +268,7 @@ class TestDivergenceIndex:
 # ---------------------------------------------------------------------------
 # Test drift_delta
 # ---------------------------------------------------------------------------
+
 
 class TestDriftDelta:
     def _make_doc(self, model: str, ber: float) -> dict:  # type: ignore[type-arg]
@@ -302,8 +311,8 @@ class TestDriftDelta:
     def test_load_from_file(self, tmp_path: pytest.TempPathFactory) -> None:
         doc_a = self._make_doc("m", 0.5)
         doc_b = self._make_doc("m", 0.9)
-        path_a = tmp_path / "a.json"  # type: ignore[operator]
-        path_b = tmp_path / "b.json"  # type: ignore[operator]
+        path_a = tmp_path / "a.json"
+        path_b = tmp_path / "b.json"
         path_a.write_text(json.dumps(doc_a))
         path_b.write_text(json.dumps(doc_b))
         deltas = drift_delta(str(path_a), str(path_b))

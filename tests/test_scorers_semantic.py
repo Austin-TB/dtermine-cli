@@ -12,7 +12,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from determinism_audit.scorers.semantic import (
-    DEFAULT_THRESHOLD,
     _cosine,
     all_above_threshold,
     encode,
@@ -20,10 +19,10 @@ from determinism_audit.scorers.semantic import (
     score_semantic,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _unit_vec(n: int, idx: int) -> list[float]:
     """Return a unit vector of length n with 1.0 at position idx."""
@@ -45,6 +44,7 @@ def _orthogonal_embeddings(texts: list[str]) -> list[list[float]]:
 # ---------------------------------------------------------------------------
 # Test _cosine
 # ---------------------------------------------------------------------------
+
 
 class TestCosine:
     def test_identical_vectors(self) -> None:
@@ -78,11 +78,13 @@ class TestCosine:
 # Test encode (mocked)
 # ---------------------------------------------------------------------------
 
+
 class TestEncode:
     def test_returns_list_of_float_lists(self) -> None:
         with patch("determinism_audit.scorers.semantic._load_model") as mock_load:
             mock_model = MagicMock()
             import numpy as np
+
             mock_model.encode.return_value = np.array([[0.1, 0.2], [0.3, 0.4]])
             mock_load.return_value = mock_model
 
@@ -96,17 +98,22 @@ class TestEncode:
 # Test score_semantic (mocked)
 # ---------------------------------------------------------------------------
 
+
 class TestScoreSemantic:
     def test_identical_texts_above_threshold(self) -> None:
         with patch("determinism_audit.scorers.semantic.encode", side_effect=_identical_embeddings):
             assert score_semantic("hello", "hello") is True
 
     def test_orthogonal_texts_below_threshold(self) -> None:
-        with patch("determinism_audit.scorers.semantic.encode", side_effect=_orthogonal_embeddings):
+        with patch(
+            "determinism_audit.scorers.semantic.encode", side_effect=_orthogonal_embeddings
+        ):
             assert score_semantic("hello", "world") is False
 
     def test_custom_threshold_zero_always_passes(self) -> None:
-        with patch("determinism_audit.scorers.semantic.encode", side_effect=_orthogonal_embeddings):
+        with patch(
+            "determinism_audit.scorers.semantic.encode", side_effect=_orthogonal_embeddings
+        ):
             assert score_semantic("hello", "world", threshold=0.0) is True
 
     def test_custom_threshold_one_only_identical(self) -> None:
@@ -117,6 +124,7 @@ class TestScoreSemantic:
 # ---------------------------------------------------------------------------
 # Test pairwise_similarities (mocked)
 # ---------------------------------------------------------------------------
+
 
 class TestPairwiseSimilarities:
     def test_empty_list(self) -> None:
@@ -132,7 +140,9 @@ class TestPairwiseSimilarities:
             assert sims[0] == pytest.approx(1.0)
 
     def test_three_orthogonal_texts(self) -> None:
-        with patch("determinism_audit.scorers.semantic.encode", side_effect=_orthogonal_embeddings):
+        with patch(
+            "determinism_audit.scorers.semantic.encode", side_effect=_orthogonal_embeddings
+        ):
             sims = pairwise_similarities(["a", "b", "c"])
             assert len(sims) == 3  # (0,1), (0,2), (1,2)
             assert all(s == pytest.approx(0.0) for s in sims)
@@ -147,6 +157,7 @@ class TestPairwiseSimilarities:
 # Test all_above_threshold (mocked)
 # ---------------------------------------------------------------------------
 
+
 class TestAllAboveThreshold:
     def test_empty_list(self) -> None:
         assert all_above_threshold([]) is True
@@ -159,9 +170,13 @@ class TestAllAboveThreshold:
             assert all_above_threshold(["a", "b", "c"]) is True
 
     def test_orthogonal_below_threshold(self) -> None:
-        with patch("determinism_audit.scorers.semantic.encode", side_effect=_orthogonal_embeddings):
+        with patch(
+            "determinism_audit.scorers.semantic.encode", side_effect=_orthogonal_embeddings
+        ):
             assert all_above_threshold(["a", "b"], threshold=0.5) is False
 
     def test_zero_threshold_always_true(self) -> None:
-        with patch("determinism_audit.scorers.semantic.encode", side_effect=_orthogonal_embeddings):
+        with patch(
+            "determinism_audit.scorers.semantic.encode", side_effect=_orthogonal_embeddings
+        ):
             assert all_above_threshold(["a", "b"], threshold=0.0) is True

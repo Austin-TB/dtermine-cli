@@ -24,9 +24,7 @@ from determinism_audit.result import (
 )
 
 # Modes that require structural scoring
-_STRUCTURAL_MODES: frozenset[ScoringMode] = frozenset(
-    {"structural", "structural_semantic"}
-)
+_STRUCTURAL_MODES: frozenset[ScoringMode] = frozenset({"structural", "structural_semantic"})
 # Modes that require semantic scoring
 _SEMANTIC_MODES: frozenset[ScoringMode] = frozenset({"semantic", "structural_semantic"})
 
@@ -72,10 +70,7 @@ def _compute_summary(prompt_results: list[PromptResult]) -> SummaryMetrics:
     ber, ber_lo, ber_hi = byte_exact_rate(all_runs)
 
     structural_runs = [
-        r
-        for pr in prompt_results
-        if pr.scoring_mode in _STRUCTURAL_MODES
-        for r in pr.runs
+        r for pr in prompt_results if pr.scoring_mode in _STRUCTURAL_MODES for r in pr.runs
     ]
     svr: float | None = None
     svr_lo: float | None = None
@@ -84,10 +79,7 @@ def _compute_summary(prompt_results: list[PromptResult]) -> SummaryMetrics:
         svr, svr_lo, svr_hi = structural_validity_rate(structural_runs)
 
     semantic_runs = [
-        r
-        for pr in prompt_results
-        if pr.scoring_mode in _SEMANTIC_MODES
-        for r in pr.runs
+        r for pr in prompt_results if pr.scoring_mode in _SEMANTIC_MODES for r in pr.runs
     ]
     ssr: float | None = None
     ssr_lo: float | None = None
@@ -95,11 +87,7 @@ def _compute_summary(prompt_results: list[PromptResult]) -> SummaryMetrics:
     if semantic_runs:
         ssr, ssr_lo, ssr_hi = semantic_stability_rate(semantic_runs)
 
-    di_values = [
-        pr.score.divergence_index
-        for pr in prompt_results
-        if pr.score is not None
-    ]
+    di_values = [pr.score.divergence_index for pr in prompt_results if pr.score is not None]
     mean_di = sum(di_values) / len(di_values) if di_values else 0.0
 
     return SummaryMetrics(

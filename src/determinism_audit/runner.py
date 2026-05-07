@@ -48,7 +48,7 @@ def _should_retry(exc: BaseException) -> bool:
             # Other 4xx — fail fast
             return False
     # Network / timeout errors are retryable
-    if isinstance(exc, (litellm.exceptions.APIConnectionError, litellm.exceptions.Timeout)):
+    if isinstance(exc, litellm.exceptions.APIConnectionError | litellm.exceptions.Timeout):
         return True
     return False
 
@@ -67,7 +67,7 @@ def _build_error_payload(exc: BaseException) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-@retry(
+@retry(  # type: ignore[misc]
     retry=retry_if_exception(_should_retry),
     stop=stop_after_attempt(_RETRY_ATTEMPTS),
     wait=wait_exponential(multiplier=1, min=_RETRY_WAIT_MIN, max=_RETRY_WAIT_MAX),

@@ -44,6 +44,7 @@ def _wilson_ci(k: int, n: int) -> tuple[float, float, float]:
 # Levenshtein distance (Wagner-Fischer, O(n) space)
 # ---------------------------------------------------------------------------
 
+
 def _levenshtein(a: str, b: str) -> int:
     m, n = len(a), len(b)
     if m == 0:
@@ -91,10 +92,7 @@ def byte_exact_rate(runs: list[RunResult]) -> tuple[float, float, float]:
     pivot = _normalise(responses[0])
     # Count all runs (including errors) against total
     total = len(runs)
-    matches = sum(
-        1 for r in runs
-        if r.response is not None and _normalise(r.response) == pivot
-    )
+    matches = sum(1 for r in runs if r.response is not None and _normalise(r.response) == pivot)
     return _wilson_ci(matches, total)
 
 
@@ -142,10 +140,7 @@ def divergence_index(runs: list[RunResult]) -> float:
     Uses whitespace-normalised responses; errored runs are treated as empty
     strings.  Returns 0.0 when fewer than 2 runs are available.
     """
-    texts = [
-        _normalise(r.response) if r.response is not None else ""
-        for r in runs
-    ]
+    texts = [_normalise(r.response) if r.response is not None else "" for r in runs]
     if len(texts) < 2:
         return 0.0
     max_dist = 0.0
@@ -168,6 +163,7 @@ def drift_delta(
     Returns a mapping of ``(model, category) -> ber_b - ber_a``.
     A positive delta means the model became *more* deterministic.
     """
+
     def _load(src: str | dict) -> dict:  # type: ignore[type-arg]
         if isinstance(src, str):
             with open(src, encoding="utf-8") as fh:

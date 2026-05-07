@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from determinism_audit.scorers.structural import (
     _extract_code,
     _extract_json,
@@ -21,11 +19,11 @@ class TestExtractJson:
         assert _extract_json('{"a": 1}') == '{"a": 1}'
 
     def test_strips_json_fence(self) -> None:
-        result = _extract_json("```json\n{\"a\": 1}\n```")
+        result = _extract_json('```json\n{"a": 1}\n```')
         assert result == '{"a": 1}'
 
     def test_strips_plain_fence(self) -> None:
-        result = _extract_json("```\n{\"a\": 1}\n```")
+        result = _extract_json('```\n{"a": 1}\n```')
         assert result == '{"a": 1}'
 
     def test_strips_surrounding_whitespace(self) -> None:
@@ -78,7 +76,7 @@ class TestScoreJson:
         assert score_json("") is False
 
     def test_fenced_json(self) -> None:
-        assert score_json("```json\n{\"a\": 1}\n```") is True
+        assert score_json('```json\n{"a": 1}\n```') is True
 
     def test_null_json(self) -> None:
         assert score_json("null") is True

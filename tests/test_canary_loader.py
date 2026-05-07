@@ -26,8 +26,14 @@ def test_all_categories_present() -> None:
     prompts = load_prompts()
     categories = {p.category for p in prompts}
     expected = {
-        "factual", "structured_json", "code", "tool_calls",
-        "math", "format_compliance", "longform_summary", "ambiguous_open",
+        "factual",
+        "structured_json",
+        "code",
+        "tool_calls",
+        "math",
+        "format_compliance",
+        "longform_summary",
+        "ambiguous_open",
     }
     assert expected == categories
 
@@ -35,6 +41,7 @@ def test_all_categories_present() -> None:
 def test_category_counts() -> None:
     prompts = load_prompts()
     from collections import Counter
+
     counts = Counter(p.category for p in prompts)
     assert counts["factual"] == 13
     assert counts["structured_json"] == 13

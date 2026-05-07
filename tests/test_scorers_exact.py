@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from determinism_audit.scorers.exact import _normalise, all_exact, score_exact
 
 
