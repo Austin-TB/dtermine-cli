@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Determinism Audit Report — {{ generated_at }}</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #181b22;
+    --panel-2: #1f232c;
+    --border: #2a2f3a;
+    --text: #e5e7eb;
+    --muted: #9aa3b2;
+    --accent: #7dd3fc;
+    --good: #4ade80;
+    --warn: #fbbf24;
+    --bad: #f87171;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 32px 0 12px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+  h3 { font-size: 15px; margin: 20px 0 8px; color: var(--accent); }
+  .meta { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); }
+  tr:hover td { background: var(--panel-2); }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-family: var(--mono); }
+  .pill.good { background: rgba(74, 222, 128, 0.15); color: var(--good); }
+  .pill.warn { background: rgba(251, 191, 36, 0.15); color: var(--warn); }
+  .pill.bad  { background: rgba(248, 113, 113, 0.15); color: var(--bad); }
+  .pill.muted { background: rgba(154, 163, 178, 0.15); color: var(--muted); }
+  .bar { display: inline-block; width: 80px; height: 8px; background: var(--panel-2); border-radius: 4px; overflow: hidden; vertical-align: middle; margin-right: 6px; }
+  .bar > span { display: block; height: 100%; background: var(--accent); }
+  details { margin: 8px 0; }
+  details > summary { cursor: pointer; padding: 6px 10px; border-radius: 6px; background: var(--panel-2); list-style: none; user-select: none; }
+  details > summary::-webkit-details-marker { display: none; }
+  details > summary::before { content: "▸ "; color: var(--muted); }
+  details[open] > summary::before { content: "▾ "; }
+  .runs { margin-top: 8px; padding-left: 16px; border-left: 2px solid var(--border); }
+  .delta-pos { color: var(--good); }
+  .delta-neg { color: var(--bad); }
+  .delta-zero { color: var(--muted); }
+  code { font-family: var(--mono); background: var(--panel-2); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+  .nav { position: sticky; top: 0; background: var(--bg); padding: 8px 0; margin-bottom: 16px; border-bottom: 1px solid var(--border); z-index: 10; }
+  .nav a { color: var(--accent); text-decoration: none; margin-right: 16px; font-size: 13px; }
+  .nav a:hover { text-decoration: underline; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .stat { background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; }
+  .stat .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .stat .value { font-size: 20px; font-family: var(--mono); margin-top: 4px; }
+  .stat .sub { color: var(--muted); font-size: 11px; font-family: var(--mono); }
+</style>
+</head>
+<body>
+
+<h1>Determinism Audit Report</h1>
+<div class="meta">
+  Generated {{ generated_at }} ·
+  {{ models|length }} model(s) ·
+  {{ configs|length }} config(s) ·
+  {{ total_prompts }} prompt evaluations ·
+  {{ total_runs }} total runs
+</div>
+
+<div class="nav">
+  <a href="#overview">Overview</a>
+  <a href="#changes">Changes vs Last Run</a>
+  <a href="#history">History</a>
+</div>
+
+<!-- ============================ OVERVIEW ============================ -->
+<h2 id="overview">Overview</h2>
+<div class="panel">
+  <table>
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th>Config</th>
+        <th class="num">Byte-Exact Rate</th>
+        <th class="num">Structural Validity</th>
+        <th class="num">Semantic Stability</th>
+        <th class="num">Mean Divergence</th>
+        <th class="num">Prompts</th>
+        <th class="num">Runs/Prompt</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in overview %}
+      <tr>
+        <td><code>{{ row.model }}</code></td>
+        <td><span class="pill muted">{{ row.config_label }}</span></td>
+        <td class="num">{{ row.byte_exact_cell|safe }}</td>
+        <td class="num">{{ row.structural_cell|safe }}</td>
+        <td class="num">{{ row.semantic_cell|safe }}</td>
+        <td class="num">{{ fmt_pct(row.summary.mean_divergence_index) }}</td>
+        <td class="num">{{ row.n_prompts }}</td>
+        <td class="num">{{ row.n_runs }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- ============================ CHANGES VS LAST RUN ============================ -->
+<h2 id="changes">Changes vs Last Run</h2>
+{% if change_panels %}
+  {% for panel in change_panels %}
+    <div class="panel">
+      <h3>
+        <code>{{ panel.model }}</code> · config <strong>{{ panel.config_label }}</strong>
+        {% if panel.prior_timestamp %}
+          <span class="meta" style="margin-left:8px;">prior: {{ panel.prior_timestamp }}</span>
+        {% endif %}
+      </h3>
+      {% if panel.prior_timestamp is none %}
+        <div class="meta">First run — no prior to compare.</div>
+      {% elif panel.n_changed == 0 %}
+        <div class="meta">No changes vs previous run.</div>
+      {% else %}
+        <div class="meta">{{ panel.n_changed }} of {{ panel.n_total }} prompt(s) changed.</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Prompt</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th class="num">ΔBER</th>
+              <th class="num">ΔSSR</th>
+              <th class="num">ΔSVR</th>
+              <th class="num">ΔDivergence</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in panel.rows %}
+            <tr>
+              <td><code>{{ row.prompt_id }}</code></td>
+              <td><span class="pill muted">{{ row.category }}</span></td>
+              <td><span class="pill muted">{{ row.status }}</span></td>
+              <td class="num">{{ row.ber_delta_cell|safe }}</td>
+              <td class="num">{{ row.ssr_delta_cell|safe }}</td>
+              <td class="num">{{ row.svr_delta_cell|safe }}</td>
+              <td class="num">{{ row.divergence_delta_cell|safe }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+    </div>
+  {% endfor %}
+{% else %}
+  <div class="panel"><div class="meta">No run data available.</div></div>
+{% endif %}
+
+<!-- ============================ HISTORY OF CHANGES ============================ -->
+<h2 id="history">History of Changes</h2>
+{% if history_panels %}
+  {% for panel in history_panels %}
+    <div class="panel">
+      <h3><code>{{ panel.model }}</code></h3>
+      {% if panel.entries %}
+        {% for entry in panel.entries %}
+        <details>
+          <summary>
+            {{ entry.timestamp }} · config <strong>{{ entry.config_label }}</strong> ·
+            <span class="pill warn">{{ entry.n_changed }} changed</span>
+          </summary>
+          <div class="runs">
+            <table>
+              <thead>
+                <tr>
+                  <th>Prompt</th>
+                  <th>Category</th>
+                  <th>Status</th>
+                  <th class="num">ΔBER</th>
+                  <th class="num">ΔSSR</th>
+                  <th class="num">ΔSVR</th>
+                  <th class="num">ΔDivergence</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in entry.rows %}
+                <tr>
+                  <td><code>{{ row.prompt_id }}</code></td>
+                  <td><span class="pill muted">{{ row.category }}</span></td>
+                  <td><span class="pill muted">{{ row.status }}</span></td>
+                  <td class="num">{{ row.ber_delta_cell|safe }}</td>
+                  <td class="num">{{ row.ssr_delta_cell|safe }}</td>
+                  <td class="num">{{ row.svr_delta_cell|safe }}</td>
+                  <td class="num">{{ row.divergence_delta_cell|safe }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </details>
+        {% endfor %}
+      {% else %}
+        <div class="meta">No recorded changes yet.</div>
+      {% endif %}
+    </div>
+  {% endfor %}
+{% else %}
+  <div class="panel"><div class="meta">No recorded changes yet.</div></div>
+{% endif %}
+
+</body>
+</html>

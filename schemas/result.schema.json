@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/determinism-audit/schemas/result.schema.json",
+  "title": "AuditReport",
+  "description": "Top-level output document for a determinism audit run. Schema version 1.0.",
+  "type": "object",
+  "required": ["schema_version", "run_id", "timestamp", "model", "config_label", "n_runs", "prompt_results"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Schema version. Breaking changes bump the major version."
+    },
+    "run_id": {
+      "type": "string",
+      "description": "UUID v4 identifying this audit run."
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "ISO 8601 timestamp (UTC) when the run completed."
+    },
+    "model": {
+      "type": "string",
+      "description": "LiteLLM model identifier, e.g. openai/gpt-4o-mini."
+    },
+    "config_label": {
+      "type": "string",
+      "enum": ["A", "B", "C", "D"],
+      "description": "Sampling configuration label."
+    },
+    "n_runs": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of independent runs performed per prompt."
+    },
+    "prompt_results": {
+      "type": "array",
+      "description": "Per-prompt results with runs and scores.",
+      "items": { "$ref": "#/$defs/PromptResult" }
+    },
+    "summary": {
+      "oneOf": [
+        { "$ref": "#/$defs/SummaryMetrics" },
+        { "type": "null" }
+      ],
+      "description": "Aggregate metrics across all prompts."
+    }
+  },
+  "$defs": {
+    "RunResult": {
+      "type": "object",
+      "required": ["prompt_id", "run_index", "model", "config_label", "latency_ms"],
+      "additionalProperties": false,
+      "properties": {
+        "prompt_id": { "type": "string" },
+        "run_index": { "type": "integer", "minimum": 0 },
+        "model": { "type": "string" },
+        "config_label": { "type": "string", "enum": ["A", "B", "C", "D"] },
+        "response": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
+        "error": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": ["code", "message", "type"],
+              "properties": {
+                "code": { "oneOf": [{ "type": "integer" }, { "type": "null" }] },
+                "message": { "type": "string" },
+                "type": { "type": "string" }
+              }
+            },
+            { "type": "null" }
+          ]
+        },
+        "latency_ms": { "type": "number", "minimum": 0 }
+      }
+    },
+    "PromptScore": {
+      "type": "object",
+      "required": [
+        "byte_exact_rate", "byte_exact_ci_low", "byte_exact_ci_high",
+        "divergence_index"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "byte_exact_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "byte_exact_ci_low": { "type": "number", "minimum": 0, "maximum": 1 },
+        "byte_exact_ci_high": { "type": "number", "minimum": 0, "maximum": 1 },
+        "structural_validity_rate": {
+          "oneOf": [{ "type": "number", "minimum": 0, "maximum": 1 }, { "type": "null" }]
+        },
+        "structural_validity_ci_low": {
+          "oneOf": [{ "type": "number", "minimum": 0, "maximum": 1 }, { "type": "null" }]
+        },
+        "structural_validity_ci_high": {
+          "oneOf": [{ "type": "number", "minimum": 0, "maximum": 1 }, { "type": "null" }]
+        },
+        "semantic_stability_rate": {
+          "oneOf": [{ "type": "number", "minimum": 0, "maximum": 1 }, { "type": "null" }]
+        },
+        "semantic_stability_ci_low": {
+          "oneOf": [{ "type": "number", "minimum": 0, "maximum": 1 }, { "type": "null" }]
+        },
+        "semantic_stability_ci_high": {
+          "oneOf": [{ "type": "number", "minimum": 0, "maximum": 1 }, { "type": "null" }]
+        },
+        "divergence_index": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "PromptResult": {
+      "type": "object",
+      "required": ["prompt_id", "category", "scoring_mode", "runs"],
+      "additionalProperties": false,
+      "properties": {
+        "prompt_id": { "type": "string" },
+        "category": { "type": "string" },
+        "scoring_mode": {
+          "type": "string",
+          "enum": ["exact", "structural", "semantic", "structural_semantic"]
+        },
+        "runs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/RunResult" }
+        },
+        "score": {
+          "oneOf": [
+            { "$ref": "#/$defs/PromptScore" },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "SummaryMetrics": {
+      "type": "object",
+      "required": [
+        "byte_exact_rate", "byte_exact_ci_low", "byte_exact_ci_high",
+        "mean_divergence_index"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "byte_exact_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "byte_exact_ci_low": { "type": "number", "minimum": 0, "maximum": 1 },
+        "byte_exact_ci_high": { "type": "number", "minimum": 0, "maximum": 1 },
+        "structural_validity_rate": {
+          "oneOf": [{ "type": "number", "minimum": 0, "maximum": 1 }, { "type": "null" }]
+        },
+        "structural_validity_ci_low": {
+          "oneOf": [{ "type": "number", "minimum": 0, "maximum": 1 }, { "type": "null" }]
+        },
+        "structural_validity_ci_high": {
+          "oneOf": [{ "type": "number", "minimum": 0, "maximum": 1 }, { "type": "null" }]
+        },
+        "semantic_stability_rate": {
+          "oneOf": [{ "type": "number", "minimum": 0, "maximum": 1 }, { "type": "null" }]
+        },
+        "semantic_stability_ci_low": {
+          "oneOf": [{ "type": "number", "minimum": 0, "maximum": 1 }, { "type": "null" }]
+        },
+        "semantic_stability_ci_high": {
+          "oneOf": [{ "type": "number", "minimum": 0, "maximum": 1 }, { "type": "null" }]
+        },
+        "mean_divergence_index": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    }
+  }
+}

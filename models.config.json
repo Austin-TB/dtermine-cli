@@ -1,0 +1,17 @@
+{
+  "n_prompts": 20,
+  "providers": {
+    "groq": {
+      "env": "GROQ_API_KEY",
+      "models": [
+        "groq/openai/gpt-oss-120b"
+      ]
+    },
+    "google": {
+      "env": "GOOGLE_API_KEY",
+      "models": [
+        "gemini/gemini-3.5-flash"
+      ]
+    }
+  }
+}
