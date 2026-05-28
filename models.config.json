@@ -1,5 +1,5 @@
 {
-  "n_prompts": 20,
+  "n_prompts_quick": 2,
   "providers": {
     "groq": {
       "env": "GROQ_API_KEY",

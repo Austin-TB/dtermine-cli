@@ -29,7 +29,7 @@ from determinism_audit.config import (
     ConfigLabel,
     ResolvedModel,
     RunConfig,
-    load_n_prompts,
+    load_n_prompts_quick,
     resolve_models,
 )
 from determinism_audit.history import (
@@ -51,6 +51,19 @@ app = typer.Typer(
     add_completion=False,
 )
 console = Console(stderr=True)
+
+
+def _sample_across_modes(prompts: list[Prompt], n_per_mode: int) -> list[Prompt]:
+    """Take up to n_per_mode prompts from each scoring_mode bucket."""
+    from collections import defaultdict
+
+    buckets: dict[str, list[Prompt]] = defaultdict(list)
+    for p in prompts:
+        buckets[p.scoring_mode].append(p)
+    result: list[Prompt] = []
+    for bucket in buckets.values():
+        result.extend(bucket[:n_per_mode])
+    return result
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -203,12 +216,9 @@ def main(
     all_prompts = load_prompts()
     n_runs = 5
     if quick:
-        all_prompts = all_prompts[:20]
+        n_per_mode = load_n_prompts_quick(models_config)
+        all_prompts = _sample_across_modes(all_prompts, n_per_mode)
         n_runs = 3
-    else:
-        n_prompts = load_n_prompts(models_config)
-        if n_prompts is not None:
-            all_prompts = all_prompts[:n_prompts]
 
     # --- Prepare output directory ---
     output_dir.mkdir(parents=True, exist_ok=True)

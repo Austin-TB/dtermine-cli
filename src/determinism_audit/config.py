@@ -152,6 +152,7 @@ class ModelsConfigFile(BaseModel):
 
     providers: dict[str, ProviderModels]
     n_prompts: int | None = Field(default=None, ge=1)
+    n_prompts_quick: int = Field(default=2, ge=1)
 
     def resolve_models(self) -> list[ResolvedModel]:
         """Return all models whose provider env key (or alias) is set."""
@@ -222,6 +223,16 @@ def load_n_prompts(path: Path | None = None) -> int | None:
     raw = json.loads(config_path.read_text(encoding="utf-8"))
     config = ModelsConfigFile.model_validate(raw)
     return config.n_prompts
+
+
+def load_n_prompts_quick(path: Path | None = None) -> int:
+    """Return n_prompts_quick from the models config file, defaulting to 2."""
+    config_path = path or DEFAULT_MODELS_CONFIG_PATH
+    if not config_path.exists():
+        return 2
+    raw = json.loads(config_path.read_text(encoding="utf-8"))
+    config = ModelsConfigFile.model_validate(raw)
+    return config.n_prompts_quick
 
 
 def resolve_models(
